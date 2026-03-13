@@ -5,19 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A simple productivity dashboard with timer, tasks, and quick links">
   <title>Productivity Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <!-- Settings Bar -->
+  <div class="settings-bar">
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </div>
+
   <!-- Greeting Module -->
   <section class="greeting-section">
     <div id="time-display"></div>
     <div id="date-display"></div>
     <div id="greeting-text"></div>
+    <button id="name-edit-btn" class="name-edit-btn">Set Name</button>
   </section>
 
   <!-- Focus Timer -->
   <section class="timer-section">
     <h2>Focus Timer</h2>
+    <div class="timer-settings">
+      <label for="timer-duration">Duration (minutes):</label>
+      <input type="number" id="timer-duration" min="1" max="120" value="25">
+      <button id="timer-set-duration">Set</button>
+    </div>
     <div id="timer-display">25:00</div>
     <div class="timer-controls">
       <button id="timer-start">Start</button>
@@ -28,7 +44,17 @@
 
   <!-- Task List -->
   <section class="tasks-section">
-    <h2>Tasks</h2>
+    <div class="tasks-header">
+      <h2>Tasks</h2>
+      <div class="task-sort-controls">
+        <label for="task-sort">Sort by:</label>
+        <select id="task-sort">
+          <option value="created">Date Created</option>
+          <option value="alphabetical">A-Z</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+    </div>
     <form id="task-form">
       <input 
         type="text" 

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task CRUD Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .test-section h3 {
+      margin-top: 0;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 15px;
+      cursor: pointer;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    #output {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 3px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Task CRUD Functions Test</h1>
+  
+  <div class="test-section">
+    <h3>Test Controls</h3>
+    <button onclick="testAddTask()">Test Add Task</button>
+    <button onclick="testAddEmptyTask()">Test Add Empty Task</button>
+    <button onclick="testToggleComplete()">Test Toggle Complete</button>
+    <button onclick="testEditTask()">Test Edit Task</button>
+    <button onclick="testDeleteTask()">Test Delete Task</button>
+    <button onclick="testLoadSave()">Test Load/Save</button>
+    <button onclick="clearStorage()">Clear Storage</button>
+    <button onclick="showTasks()">Show All Tasks</button>
+  </div>
+
+  <div class="test-section">
+    <h3>Output</h3>
+    <div id="output"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    function log(message, isError = false) {
+      const output = document.getElementById('output');
+      const className = isError ? 'error' : 'success';
+      output.innerHTML += `<span class="${className}">${message}</span>\n`;
+    }
+
+    function clearOutput() {
+      document.getElementById('output').innerHTML = '';
+    }
+
+    function testAddTask() {
+      clearOutput();
+      log('=== Testing addTask() ===');
+      
+      // Load existing tasks
+      tasks = loadTasks();
+      const initialCount = tasks.length;
+      log(`Initial task count: ${initialCount}`);
+      
+      // Add a new task
+      const result = addTask('Test task from manual test');
+      
+      if (result) {
+        log(`✓ Task created successfully`);
+        log(`  ID: ${result.id}`);
+        log(`  Text: ${result.text}`);
+        log(`  Completed: ${result.completed}`);
+        log(`  CreatedAt: ${result.createdAt}`);
+        log(`  New task count: ${tasks.length}`);
+      } else {
+        log('✗ Failed to create task', true);
+      }
+    }
+
+    function testAddEmptyTask() {
+      clearOutput();
+      log('=== Testing addTask() with empty string ===');
+      
+      tasks = loadTasks();
+      const initialCount = tasks.length;
+      log(`Initial task count: ${initialCount}`);
+      
+      // Try to add empty task
+      const result = addTask('   ');
+      
+      if (result === null) {
+        log(`✓ Correctly rejected empty task`);
+        log(`  Task count unchanged: ${tasks.length}`);
+      } else {
+        log('✗ Should have rejected empty task', true);
+      }
+    }
+
+    function testToggleComplete() {
+      clearOutput();
+      log('=== Testing toggleTaskComplete() ===');
+      
+      // Ensure we have at least one task
+      tasks = loadTasks();
+      if (tasks.length === 0) {
+        addTask('Task for toggle test');
+      }
+      
+      const task = tasks[0];
+      log(`Task: ${task.text}`);
+      log(`Initial completed status: ${task.completed}`);
+      
+      // Toggle once
+      const result1 = toggleTaskComplete(task.id);
+      log(`✓ Toggled to: ${task.completed}`);
+      
+      // Toggle again
+      const result2 = toggleTaskComplete(task.id);
+      log(`✓ Toggled to: ${task.completed}`);
+      
+      if (result1 && result2) {
+        log('✓ Toggle operations successful');
+      }
+    }
+
+    function testEditTask() {
+      clearOutput();
+      log('=== Testing editTask() ===');
+      
+      // Ensure we have at least one task
+      tasks = loadTasks();
+      if (tasks.length === 0) {
+        addTask('Task for edit test');
+      }
+      
+      const task = tasks[0];
+      const originalText = task.text;
+      const originalId = task.id;
+      const originalCreatedAt = task.createdAt;
+      
+      log(`Original task: ${originalText}`);
+      
+      // Edit the task
+      const newText = 'Updated task text';
+      const result = editTask(task.id, newText);
+      
+      if (result) {
+        log(`✓ Task edited successfully`);
+        log(`  New text: ${task.text}`);
+        log(`  ID preserved: ${task.id === originalId}`);
+        log(`  CreatedAt preserved: ${task.createdAt === originalCreatedAt}`);
+      } else {
+        log('✗ Failed to edit task', true);
+      }
+      
+      // Test empty edit
+      const emptyResult = editTask(task.id, '   ');
+      if (!emptyResult) {
+        log('✓ Correctly rejected empty edit');
+      }
+    }
+
+    function testDeleteTask() {
+      clearOutput();
+      log('=== Testing deleteTask() ===');
+      
+      // Ensure we have at least one task
+      tasks = loadTasks();
+      if (tasks.length === 0) {
+        addTask('Task for delete test');
+      }
+      
+      const initialCount = tasks.length;
+      const taskToDelete = tasks[0];
+      
+      log(`Initial task count: ${initialCount}`);
+      log(`Deleting task: ${taskToDelete.text}`);
+      
+      // Delete the task
+      const result = deleteTask(taskToDelete.id);
+      
+      if (result) {
+        log(`✓ Task deleted successfully`);
+        log(`  New task count: ${tasks.length}`);
+        log(`  Count reduced by 1: ${tasks.length === initialCount - 1}`);
+        
+        // Verify task is gone
+        const found = tasks.find(t => t.id === taskToDelete.id);
+        log(`  Task not in list: ${found === undefined}`);
+      } else {
+        log('✗ Failed to delete task', true);
+      }
+    }
+
+    function testLoadSave() {
+      clearOutput();
+      log('=== Testing loadTasks() and saveTasks() ===');
+      
+      // Create test data
+      const testTasks = [
+        { id: 'task-1', text: 'Test 1', completed: false, createdAt: Date.now() },
+        { id: 'task-2', text: 'Test 2', completed: true, createdAt: Date.now() + 1 }
+      ];
+      
+      log('Saving test tasks...');
+      saveTasks(testTasks);
+      
+      log('Loading tasks from storage...');
+      const loaded = loadTasks();
+      
+      log(`✓ Loaded ${loaded.length} tasks`);
+      log(`  Match count: ${loaded.length === testTasks.length}`);
+      
+      if (loaded.length > 0) {
+        log(`  First task: ${loaded[0].text}`);
+        log(`  Second task: ${loaded[1].text}`);
+      }
+      
+      // Update global tasks
+      tasks = loaded;
+    }
+
+    function clearStorage() {
+      clearOutput();
+      log('=== Clearing Local Storage ===');
+      localStorage.removeItem('productivity-dashboard-tasks');
+      tasks = [];
+      log('✓ Storage cleared');
+    }
+
+    function showTasks() {
+      clearOutput();
+      log('=== Current Tasks in Storage ===');
+      
+      tasks = loadTasks();
+      
+      if (tasks.length === 0) {
+        log('No tasks in storage');
+      } else {
+        log(`Total tasks: ${tasks.length}\n`);
+        tasks.forEach((task, index) => {
+          log(`Task ${index + 1}:`);
+          log(`  ID: ${task.id}`);
+          log(`  Text: ${task.text}`);
+          log(`  Completed: ${task.completed}`);
+          log(`  Created: ${new Date(task.createdAt).toLocaleString()}`);
+          log('');
+        });
+      }
+    }
+
+    // Initialize
+    log('Task CRUD Test Page Loaded');
+    log('Click buttons above to test functionality\n');
+  </script>
+</body>
+</html>

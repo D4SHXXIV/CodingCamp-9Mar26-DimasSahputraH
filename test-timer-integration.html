@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer Integration Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    #timer-display {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .pass { color: green; }
+    .fail { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Timer Integration Test</h1>
+  
+  <div class="test-section">
+    <h2>Timer Display</h2>
+    <div id="timer-display">25:00</div>
+    <div class="timer-controls">
+      <button id="timer-start">Start</button>
+      <button id="timer-stop">Stop</button>
+      <button id="timer-reset">Reset</button>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Results</h2>
+    <div id="test-results"></div>
+  </div>
+
+  <script>
+    // Timer state
+    const timerState = {
+      remainingSeconds: 1500,
+      isRunning: false,
+      intervalId: null
+    };
+
+    // Cache DOM element references
+    let timerDisplay;
+    let timerStartBtn;
+    let timerStopBtn;
+    let timerResetBtn;
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+      const secsStr = secs < 10 ? '0' + secs : secs;
+      return `${minutesStr}:${secsStr}`;
+    }
+
+    function updateTimerDisplay() {
+      if (timerDisplay) {
+        timerDisplay.textContent = formatTime(timerState.remainingSeconds);
+      }
+    }
+
+    function startTimer() {
+      if (timerState.isRunning) {
+        return;
+      }
+      
+      timerState.isRunning = true;
+      
+      timerState.intervalId = setInterval(() => {
+        if (timerState.remainingSeconds > 0) {
+          timerState.remainingSeconds--;
+          updateTimerDisplay();
+        } else {
+          stopTimer();
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      timerState.isRunning = false;
+      
+      if (timerState.intervalId !== null) {
+        clearInterval(timerState.intervalId);
+        timerState.intervalId = null;
+      }
+    }
+
+    function resetTimer() {
+      stopTimer();
+      timerState.remainingSeconds = 1500;
+      updateTimerDisplay();
+    }
+
+    function initTimer() {
+      timerDisplay = document.getElementById('timer-display');
+      timerStartBtn = document.getElementById('timer-start');
+      timerStopBtn = document.getElementById('timer-stop');
+      timerResetBtn = document.getElementById('timer-reset');
+      
+      updateTimerDisplay();
+      
+      if (timerStartBtn) {
+        timerStartBtn.addEventListener('click', startTimer);
+      }
+      
+      if (timerStopBtn) {
+        timerStopBtn.addEventListener('click', stopTimer);
+      }
+      
+      if (timerResetBtn) {
+        timerResetBtn.addEventListener('click', resetTimer);
+      }
+    }
+
+    // Automated tests
+    const testResults = document.getElementById('test-results');
+    
+    function logTest(description, passed) {
+      const className = passed ? 'pass' : 'fail';
+      const symbol = passed ? '✓' : '✗';
+      testResults.innerHTML += `<p class="${className}">${symbol} ${description}</p>`;
+    }
+
+    // Initialize timer
+    initTimer();
+
+    // Run automated tests
+    setTimeout(() => {
+      logTest('Timer initializes at 25:00', timerDisplay.textContent === '25:00');
+      logTest('Timer state starts with isRunning = false', timerState.isRunning === false);
+      logTest('Timer state starts with remainingSeconds = 1500', timerState.remainingSeconds === 1500);
+      
+      // Test reset
+      timerState.remainingSeconds = 100;
+      updateTimerDisplay();
+      resetTimer();
+      logTest('Reset returns timer to 25:00', timerDisplay.textContent === '25:00');
+      logTest('Reset sets remainingSeconds to 1500', timerState.remainingSeconds === 1500);
+      logTest('Reset sets isRunning to false', timerState.isRunning === false);
+      
+      // Test formatTime
+      logTest('formatTime(0) returns "00:00"', formatTime(0) === '00:00');
+      logTest('formatTime(545) returns "09:05"', formatTime(545) === '09:05');
+      logTest('formatTime(1500) returns "25:00"', formatTime(1500) === '25:00');
+      
+      testResults.innerHTML += '<hr><p><strong>Manual Tests:</strong></p>';
+      testResults.innerHTML += '<p>1. Click Start - timer should count down every second</p>';
+      testResults.innerHTML += '<p>2. Click Stop - timer should pause</p>';
+      testResults.innerHTML += '<p>3. Click Start again - timer should resume from paused time</p>';
+      testResults.innerHTML += '<p>4. Click Reset - timer should return to 25:00 and stop</p>';
+      testResults.innerHTML += '<p>5. Let timer run to 00:00 - it should stop automatically</p>';
+    }, 100);
+  </script>
+</body>
+</html>

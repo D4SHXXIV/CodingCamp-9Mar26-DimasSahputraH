@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Styling Test - Productivity Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Greeting Module -->
+  <section class="greeting-section">
+    <div id="time-display">2:30 PM</div>
+    <div id="date-display">Monday, January 15, 2024</div>
+    <div id="greeting-text">Good Afternoon</div>
+  </section>
+
+  <!-- Focus Timer -->
+  <section class="timer-section">
+    <h2>Focus Timer</h2>
+    <div id="timer-display">25:00</div>
+    <div class="timer-controls">
+      <button id="timer-start">Start</button>
+      <button id="timer-stop">Stop</button>
+      <button id="timer-reset">Reset</button>
+    </div>
+  </section>
+
+  <!-- Task List -->
+  <section class="tasks-section">
+    <h2>Tasks</h2>
+    <form id="task-form">
+      <input 
+        type="text" 
+        id="task-input" 
+        placeholder="Add a new task..." 
+        value=""
+      >
+      <button type="submit">Add Task</button>
+    </form>
+    <div id="task-list">
+      <!-- Sample task items -->
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox">
+        <span class="task-text">Complete project proposal</span>
+        <button class="task-edit-btn">Edit</button>
+        <button class="task-delete-btn">Delete</button>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" checked>
+        <span class="task-text" style="text-decoration: line-through; color: #a0aec0;">Review pull requests</span>
+        <button class="task-edit-btn">Edit</button>
+        <button class="task-delete-btn">Delete</button>
+      </div>
+      <div class="task-item">
+        <input type="text" class="task-edit-input" value="Task being edited">
+        <button class="task-save-btn">Save</button>
+        <button class="task-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Links Panel -->
+  <section class="links-section">
+    <h2>Quick Links</h2>
+    <form id="link-form">
+      <input 
+        type="text" 
+        id="link-name-input" 
+        placeholder="Link name..." 
+      >
+      <input 
+        type="text" 
+        id="link-url-input" 
+        placeholder="URL..." 
+      >
+      <button type="submit">Add Link</button>
+    </form>
+    <div id="links-container">
+      <!-- Sample link items -->
+      <div class="link-button">
+        <button class="link-btn">GitHub</button>
+        <button class="link-delete-btn">Delete</button>
+      </div>
+      <div class="link-button">
+        <button class="link-btn">Gmail</button>
+        <button class="link-delete-btn">Delete</button>
+      </div>
+      <div class="link-button">
+        <button class="link-btn">Stack Overflow</button>
+        <button class="link-delete-btn">Delete</button>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

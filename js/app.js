@@ -40,6 +40,97 @@ function loadFromStorage(key, defaultValue = []) {
 }
 
 // ============================================
+// THEME MODULE
+// ============================================
+
+const THEME_STORAGE_KEY = 'productivity-dashboard-theme';
+const NAME_STORAGE_KEY = 'productivity-dashboard-name';
+
+/**
+ * Loads the saved theme preference
+ * @returns {string} - 'light' or 'dark'
+ */
+function loadTheme() {
+  return loadFromStorage(THEME_STORAGE_KEY, 'light');
+}
+
+/**
+ * Saves the theme preference
+ * @param {string} theme - 'light' or 'dark'
+ */
+function saveTheme(theme) {
+  saveToStorage(THEME_STORAGE_KEY, theme);
+}
+
+/**
+ * Applies the theme to the document
+ * @param {string} theme - 'light' or 'dark'
+ */
+function applyTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  
+  // Update theme toggle icon
+  const themeIcon = document.querySelector('.theme-icon');
+  if (themeIcon) {
+    themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+}
+
+/**
+ * Toggles between light and dark themes
+ */
+function toggleTheme() {
+  const currentTheme = document.body.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+  saveTheme(newTheme);
+}
+
+/**
+ * Loads the saved user name
+ * @returns {string} - User's name or empty string
+ */
+function loadUserName() {
+  return loadFromStorage(NAME_STORAGE_KEY, '');
+}
+
+/**
+ * Saves the user name
+ * @param {string} name - User's name
+ */
+function saveUserName(name) {
+  saveToStorage(NAME_STORAGE_KEY, name);
+}
+
+/**
+ * Initializes the theme module
+ */
+function initTheme() {
+  // Load and apply saved theme
+  const savedTheme = loadTheme();
+  applyTheme(savedTheme);
+  
+  // Attach theme toggle listener
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+  
+  // Attach name edit listener
+  const nameEditBtn = document.getElementById('name-edit-btn');
+  if (nameEditBtn) {
+    nameEditBtn.addEventListener('click', () => {
+      const currentName = loadUserName();
+      const newName = prompt('Enter your name:', currentName);
+      if (newName !== null) {
+        saveUserName(newName.trim());
+        updateTimeAndGreeting();
+      }
+    });
+  }
+}
+
+// ============================================
 // GREETING MODULE
 // ============================================
 
@@ -49,14 +140,17 @@ function loadFromStorage(key, defaultValue = []) {
  * @returns {string} - Greeting text
  */
 function getGreeting(hour) {
+  const userName = loadUserName();
+  const nameStr = userName ? `, ${userName}` : '';
+  
   if (hour >= 5 && hour <= 11) {
-    return 'Good Morning';
+    return `Good Morning${nameStr}`;
   } else if (hour >= 12 && hour <= 16) {
-    return 'Good Afternoon';
+    return `Good Afternoon${nameStr}`;
   } else if (hour >= 17 && hour <= 20) {
-    return 'Good Evening';
+    return `Good Evening${nameStr}`;
   } else {
-    return 'Good Night';
+    return `Good Night${nameStr}`;
   }
 }
 
@@ -117,6 +211,7 @@ function initGreeting() {
 // Timer state
 const timerState = {
   remainingSeconds: 1500, // 25 minutes in seconds
+  defaultDuration: 1500, // Default duration (can be changed by user)
   isRunning: false,
   intervalId: null
 };
@@ -126,6 +221,8 @@ let timerDisplay;
 let timerStartBtn;
 let timerStopBtn;
 let timerResetBtn;
+let timerDurationInput;
+let timerSetDurationBtn;
 
 /**
  * Formats seconds into MM:SS format
@@ -185,11 +282,31 @@ function stopTimer() {
 }
 
 /**
- * Resets the timer to 25 minutes
+ * Resets the timer to the default duration
  */
 function resetTimer() {
   stopTimer();
-  timerState.remainingSeconds = 1500;
+  timerState.remainingSeconds = timerState.defaultDuration;
+  updateTimerDisplay();
+}
+
+/**
+ * Sets a new default duration for the timer
+ * @param {number} minutes - Duration in minutes
+ */
+function setTimerDuration(minutes) {
+  // Validate input
+  if (minutes < 1 || minutes > 120) {
+    alert('Please enter a duration between 1 and 120 minutes');
+    return;
+  }
+  
+  // Stop timer if running
+  stopTimer();
+  
+  // Update default duration and reset timer
+  timerState.defaultDuration = minutes * 60;
+  timerState.remainingSeconds = timerState.defaultDuration;
   updateTimerDisplay();
 }
 
@@ -203,6 +320,8 @@ function initTimer() {
   timerStartBtn = document.getElementById('timer-start');
   timerStopBtn = document.getElementById('timer-stop');
   timerResetBtn = document.getElementById('timer-reset');
+  timerDurationInput = document.getElementById('timer-duration');
+  timerSetDurationBtn = document.getElementById('timer-set-duration');
   
   // Initialize display
   updateTimerDisplay();
@@ -218,6 +337,15 @@ function initTimer() {
   
   if (timerResetBtn) {
     timerResetBtn.addEventListener('click', resetTimer);
+  }
+  
+  if (timerSetDurationBtn) {
+    timerSetDurationBtn.addEventListener('click', () => {
+      const minutes = parseInt(timerDurationInput.value, 10);
+      if (!isNaN(minutes)) {
+        setTimerDuration(minutes);
+      }
+    });
   }
 }
 
@@ -265,6 +393,16 @@ function addTask(text) {
   // Validate input: reject empty or whitespace-only text
   const trimmedText = text.trim();
   if (trimmedText.length === 0) {
+    return null;
+  }
+  
+  // Check for duplicate tasks (case-insensitive comparison)
+  const isDuplicate = tasks.some(task => 
+    task.text.toLowerCase() === trimmedText.toLowerCase()
+  );
+  
+  if (isDuplicate) {
+    alert('This task already exists!');
     return null;
   }
   
@@ -362,6 +500,35 @@ function deleteTask(taskId) {
 let taskInput;
 let taskForm;
 let taskList;
+let taskSortSelect;
+
+/**
+ * Sorts tasks based on the selected sort option
+ * @param {Task[]} tasksToSort - Array of tasks to sort
+ * @param {string} sortBy - Sort option: 'created', 'alphabetical', or 'completed'
+ * @returns {Task[]} - Sorted array of tasks
+ */
+function sortTasks(tasksToSort, sortBy) {
+  const tasksCopy = [...tasksToSort];
+  
+  switch (sortBy) {
+    case 'alphabetical':
+      return tasksCopy.sort((a, b) => a.text.localeCompare(b.text));
+    
+    case 'completed':
+      return tasksCopy.sort((a, b) => {
+        // Incomplete tasks first, then completed tasks
+        if (a.completed === b.completed) {
+          return a.createdAt - b.createdAt; // Maintain creation order within groups
+        }
+        return a.completed ? 1 : -1;
+      });
+    
+    case 'created':
+    default:
+      return tasksCopy.sort((a, b) => a.createdAt - b.createdAt);
+  }
+}
 
 /**
  * Renders a single task as a DOM element
@@ -427,8 +594,14 @@ function renderTasks(tasksToRender) {
   if (taskList) {
     taskList.innerHTML = '';
 
+    // Get current sort option
+    const sortBy = taskSortSelect ? taskSortSelect.value : 'created';
+    
+    // Sort tasks based on selected option
+    const sortedTasks = sortTasks(tasksToRender, sortBy);
+
     // Render each task
-    tasksToRender.forEach(task => {
+    sortedTasks.forEach(task => {
       const taskElement = renderTask(task);
       taskList.appendChild(taskElement);
     });
@@ -497,6 +670,7 @@ function initTaskList() {
   taskInput = document.getElementById('task-input');
   taskForm = document.getElementById('task-form');
   taskList = document.getElementById('task-list');
+  taskSortSelect = document.getElementById('task-sort');
 
   // Load tasks from Local Storage
   tasks = loadTasks();
@@ -516,12 +690,19 @@ function initTaskList() {
       }
 
       // Add task
-      addTask(text);
-
-      // Clear input field
-      taskInput.value = '';
-
-      // Re-render task list
+      const newTask = addTask(text);
+      
+      // Only clear input and re-render if task was successfully added
+      if (newTask) {
+        taskInput.value = '';
+        renderTasks(tasks);
+      }
+    });
+  }
+  
+  // Attach sort change listener
+  if (taskSortSelect) {
+    taskSortSelect.addEventListener('change', () => {
       renderTasks(tasks);
     });
   }
@@ -733,6 +914,9 @@ function initQuickLinks() {
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Productivity Dashboard loaded');
+  
+  // Initialize theme
+  initTheme();
   
   // Initialize greeting module
   initGreeting();

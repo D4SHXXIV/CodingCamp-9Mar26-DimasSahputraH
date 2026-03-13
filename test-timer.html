@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer Function Tests</title>
+</head>
+<body>
+  <h1>Timer Function Tests</h1>
+  <div id="test-results"></div>
+
+  <script>
+    // Import timer functions (copy from app.js for testing)
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+      const secsStr = secs < 10 ? '0' + secs : secs;
+      return `${minutesStr}:${secsStr}`;
+    }
+
+    // Test results container
+    const results = document.getElementById('test-results');
+    let testsPassed = 0;
+    let testsFailed = 0;
+
+    function test(description, actual, expected) {
+      const passed = actual === expected;
+      if (passed) {
+        testsPassed++;
+        results.innerHTML += `<p style="color: green;">✓ ${description}</p>`;
+      } else {
+        testsFailed++;
+        results.innerHTML += `<p style="color: red;">✗ ${description}<br>Expected: ${expected}<br>Got: ${actual}</p>`;
+      }
+    }
+
+    // Run tests
+    console.log('Running timer tests...');
+
+    // Test formatTime function
+    test('formatTime(1500) should return "25:00"', formatTime(1500), '25:00');
+    test('formatTime(0) should return "00:00"', formatTime(0), '00:00');
+    test('formatTime(545) should return "09:05"', formatTime(545), '09:05');
+    test('formatTime(60) should return "01:00"', formatTime(60), '01:00');
+    test('formatTime(59) should return "00:59"', formatTime(59), '00:59');
+    test('formatTime(1) should return "00:01"', formatTime(1), '00:01');
+    test('formatTime(600) should return "10:00"', formatTime(600), '10:00');
+    test('formatTime(661) should return "11:01"', formatTime(661), '11:01');
+
+    // Display summary
+    results.innerHTML += `<hr><h2>Summary</h2>`;
+    results.innerHTML += `<p>Tests Passed: ${testsPassed}</p>`;
+    results.innerHTML += `<p>Tests Failed: ${testsFailed}</p>`;
+    
+    if (testsFailed === 0) {
+      results.innerHTML += `<p style="color: green; font-weight: bold;">All tests passed! ✓</p>`;
+    } else {
+      results.innerHTML += `<p style="color: red; font-weight: bold;">Some tests failed! ✗</p>`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Links Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .links-section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    #link-form {
+      margin-bottom: 20px;
+    }
+    #link-form input {
+      padding: 8px;
+      margin-right: 10px;
+      width: 200px;
+    }
+    #link-form button {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .link-button {
+      display: inline-block;
+      margin: 5px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #f8f9fa;
+    }
+    .link-btn {
+      padding: 8px 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .link-delete-btn {
+      padding: 8px 12px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .test-results {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f0f0f0;
+      border-radius: 8px;
+    }
+    .pass { color: green; }
+    .fail { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Quick Links Test</h1>
+  
+  <section class="links-section">
+    <h2>Quick Links</h2>
+    <form id="link-form">
+      <input 
+        type="text" 
+        id="link-name-input" 
+        placeholder="Link name..." 
+        autocomplete="off"
+      >
+      <input 
+        type="text" 
+        id="link-url-input" 
+        placeholder="URL..." 
+        autocomplete="off"
+      >
+      <button type="submit">Add Link</button>
+    </form>
+    <div id="links-container"></div>
+  </section>
+
+  <div class="test-results">
+    <h3>Test Results</h3>
+    <div id="test-output"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Wait for initialization
+    setTimeout(() => {
+      const testOutput = document.getElementById('test-output');
+      const results = [];
+
+      // Test 1: Check if initQuickLinks was called
+      results.push({
+        name: 'initQuickLinks called',
+        pass: typeof links !== 'undefined'
+      });
+
+      // Test 2: Check if DOM elements are cached
+      results.push({
+        name: 'DOM elements cached',
+        pass: typeof linkNameInput !== 'undefined' && 
+              typeof linkUrlInput !== 'undefined' &&
+              typeof linkForm !== 'undefined' &&
+              typeof linksContainer !== 'undefined'
+      });
+
+      // Test 3: Add a link programmatically
+      const initialLength = links.length;
+      const testLink = addLink('GitHub', 'https://github.com');
+      results.push({
+        name: 'addLink creates link',
+        pass: testLink !== null && links.length === initialLength + 1
+      });
+
+      // Test 4: Verify link has correct properties
+      results.push({
+        name: 'Link has correct properties',
+        pass: testLink && testLink.name === 'GitHub' && testLink.url === 'https://github.com'
+      });
+
+      // Test 5: Test empty name validation
+      const emptyNameLink = addLink('', 'https://example.com');
+      results.push({
+        name: 'Empty name rejected',
+        pass: emptyNameLink === null
+      });
+
+      // Test 6: Test empty URL validation
+      const emptyUrlLink = addLink('Test', '');
+      results.push({
+        name: 'Empty URL rejected',
+        pass: emptyUrlLink === null
+      });
+
+      // Test 7: Test whitespace-only validation
+      const whitespaceLink = addLink('   ', '   ');
+      results.push({
+        name: 'Whitespace-only rejected',
+        pass: whitespaceLink === null
+      });
+
+      // Test 8: Verify renderLinks function exists
+      results.push({
+        name: 'renderLinks function exists',
+        pass: typeof renderLinks === 'function'
+      });
+
+      // Test 9: Verify renderLink function exists
+      results.push({
+        name: 'renderLink function exists',
+        pass: typeof renderLink === 'function'
+      });
+
+      // Test 10: Test deleteLink
+      const linkToDelete = addLink('ToDelete', 'https://delete.com');
+      const lengthBeforeDelete = links.length;
+      const deleted = deleteLink(linkToDelete.id);
+      results.push({
+        name: 'deleteLink removes link',
+        pass: deleted && links.length === lengthBeforeDelete - 1
+      });
+
+      // Render results
+      let html = '<ul>';
+      results.forEach(result => {
+        const className = result.pass ? 'pass' : 'fail';
+        const status = result.pass ? '✓ PASS' : '✗ FAIL';
+        html += `<li class="${className}">${result.name}: ${status}</li>`;
+      });
+      html += '</ul>';
+
+      const passCount = results.filter(r => r.pass).length;
+      html += `<p><strong>Results: ${passCount}/${results.length} tests passed</strong></p>`;
+
+      testOutput.innerHTML = html;
+
+      // Re-render to show the test link
+      renderLinks(links);
+    }, 500);
+  </script>
+</body>
+</html>

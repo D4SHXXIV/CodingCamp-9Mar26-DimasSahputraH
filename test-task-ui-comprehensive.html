@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprehensive Task UI Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      background: #f9f9f9;
+    }
+    .task-checkbox {
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
+    .task-text {
+      flex: 1;
+      font-size: 16px;
+    }
+    .task-edit-input {
+      flex: 1;
+      padding: 8px;
+      font-size: 16px;
+      border: 2px solid #4CAF50;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 15px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .task-edit-btn {
+      background: #2196F3;
+      color: white;
+    }
+    .task-delete-btn {
+      background: #f44336;
+      color: white;
+    }
+    .task-save-btn {
+      background: #4CAF50;
+      color: white;
+    }
+    .task-cancel-btn {
+      background: #9E9E9E;
+      color: white;
+    }
+    #task-form {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    #task-input {
+      padding: 10px;
+      flex: 1;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+    }
+    #task-form button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+    }
+    .test-results {
+      margin-top: 30px;
+      padding: 20px;
+      background: #e8f5e9;
+      border-radius: 4px;
+    }
+    .test-results h3 {
+      margin-top: 0;
+    }
+    .test-item {
+      padding: 5px 0;
+    }
+    .pass {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .fail {
+      color: #f44336;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Comprehensive Task UI Test</h1>
+  
+  <section class="tasks-section">
+    <h2>Tasks</h2>
+    <form id="task-form">
+      <input 
+        type="text" 
+        id="task-input" 
+        placeholder="Add a new task..." 
+        autocomplete="off"
+      >
+      <button type="submit">Add Task</button>
+    </form>
+    <div id="task-list"></div>
+  </section>
+
+  <div class="test-results">
+    <h3>Automated Test Results</h3>
+    <div id="test-output"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  
+  <script>
+    // Comprehensive test suite
+    const testOutput = document.getElementById('test-output');
+    
+    function logTest(name, passed) {
+      const div = document.createElement('div');
+      div.className = 'test-item';
+      div.innerHTML = `<span class="${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span> ${name}`;
+      testOutput.appendChild(div);
+    }
+    
+    // Wait for initialization
+    setTimeout(() => {
+      console.log('Running automated tests...');
+      
+      // Clear any existing tasks
+      localStorage.removeItem('productivity-dashboard-tasks');
+      tasks = [];
+      renderTasks(tasks);
+      
+      // Test 1: Initial state
+      logTest('Task list initializes empty', tasks.length === 0);
+      
+      // Test 2: Add task
+      const task1 = addTask('Test task 1');
+      logTest('Add task returns task object', task1 !== null && task1.text === 'Test task 1');
+      logTest('Task has correct properties', task1.id && task1.completed === false && task1.createdAt);
+      
+      // Test 3: Render task
+      renderTasks(tasks);
+      const taskElements = document.querySelectorAll('.task-item');
+      logTest('Task renders to DOM', taskElements.length === 1);
+      
+      // Test 4: Task has all controls
+      const firstTask = taskElements[0];
+      const hasCheckbox = firstTask.querySelector('.task-checkbox') !== null;
+      const hasText = firstTask.querySelector('.task-text') !== null;
+      const hasEdit = firstTask.querySelector('.task-edit-btn') !== null;
+      const hasDelete = firstTask.querySelector('.task-delete-btn') !== null;
+      logTest('Task has checkbox, text, edit, and delete controls', hasCheckbox && hasText && hasEdit && hasDelete);
+      
+      // Test 5: Add multiple tasks
+      addTask('Test task 2');
+      addTask('Test task 3');
+      renderTasks(tasks);
+      logTest('Multiple tasks render correctly', document.querySelectorAll('.task-item').length === 3);
+      
+      // Test 6: Toggle completion
+      const taskId = tasks[0].id;
+      toggleTaskComplete(taskId);
+      logTest('Toggle completion changes status', tasks[0].completed === true);
+      
+      renderTasks(tasks);
+      const completedTask = document.querySelector(`[data-task-id="${taskId}"] .task-text`);
+      logTest('Completed task has line-through style', completedTask.style.textDecoration === 'line-through');
+      
+      // Test 7: Edit task
+      const originalText = tasks[1].text;
+      editTask(tasks[1].id, 'Updated task text');
+      logTest('Edit task updates text', tasks[1].text === 'Updated task text');
+      
+      // Test 8: Delete task
+      const beforeCount = tasks.length;
+      deleteTask(tasks[2].id);
+      logTest('Delete task removes from array', tasks.length === beforeCount - 1);
+      
+      renderTasks(tasks);
+      logTest('Delete task removes from DOM', document.querySelectorAll('.task-item').length === 2);
+      
+      // Test 9: Empty input validation
+      const emptyTask = addTask('   ');
+      logTest('Empty/whitespace input rejected', emptyTask === null);
+      
+      // Test 10: Storage persistence
+      saveTasks(tasks);
+      const loadedTasks = loadTasks();
+      logTest('Tasks persist to Local Storage', loadedTasks.length === tasks.length);
+      logTest('Loaded tasks match saved tasks', JSON.stringify(loadedTasks) === JSON.stringify(tasks));
+      
+      // Test 11: Form submission
+      const inputField = document.getElementById('task-input');
+      inputField.value = 'Form test task';
+      const form = document.getElementById('task-form');
+      form.dispatchEvent(new Event('submit'));
+      logTest('Form submission adds task', tasks.some(t => t.text === 'Form test task'));
+      logTest('Form submission clears input', inputField.value === '');
+      
+      console.log('All tests completed!');
+      console.log('Current tasks:', tasks);
+    }, 200);
+  </script>
+</body>
+</html>

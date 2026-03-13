@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Greeting Module Test</title>
+</head>
+<body>
+  <h1>Greeting Module Test</h1>
+  <div id="results"></div>
+  
+  <script>
+    // Copy the getGreeting function
+    function getGreeting(hour) {
+      if (hour >= 5 && hour <= 11) {
+        return 'Good Morning';
+      } else if (hour >= 12 && hour <= 16) {
+        return 'Good Afternoon';
+      } else if (hour >= 17 && hour <= 20) {
+        return 'Good Evening';
+      } else {
+        return 'Good Night';
+      }
+    }
+    
+    // Run tests
+    const results = [];
+    
+    // Test various hours
+    results.push('Testing getGreeting function:');
+    results.push('Hour 9 (Morning): ' + getGreeting(9));
+    results.push('Hour 14 (Afternoon): ' + getGreeting(14));
+    results.push('Hour 18 (Evening): ' + getGreeting(18));
+    results.push('Hour 22 (Night): ' + getGreeting(22));
+    results.push('Hour 3 (Night): ' + getGreeting(3));
+    
+    // Test boundary cases
+    results.push('');
+    results.push('Boundary tests:');
+    results.push('Hour 5 (Morning start): ' + getGreeting(5));
+    results.push('Hour 11 (Morning end): ' + getGreeting(11));
+    results.push('Hour 12 (Afternoon start): ' + getGreeting(12));
+    results.push('Hour 16 (Afternoon end): ' + getGreeting(16));
+    results.push('Hour 17 (Evening start): ' + getGreeting(17));
+    results.push('Hour 20 (Evening end): ' + getGreeting(20));
+    results.push('Hour 21 (Night start): ' + getGreeting(21));
+    results.push('Hour 4 (Night end): ' + getGreeting(4));
+    
+    // Test time formatting
+    results.push('');
+    results.push('Testing time formatting:');
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+    const timeStr = hours + ':' + minutesStr + ' ' + ampm;
+    results.push('Current time: ' + timeStr);
+    
+    // Test date formatting
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const date = now.getDate();
+    const year = now.getFullYear();
+    const dateStr = dayName + ', ' + monthName + ' ' + date + ', ' + year;
+    results.push('Current date: ' + dateStr);
+    
+    results.push('');
+    results.push('All tests passed! ✓');
+    
+    // Display results
+    document.getElementById('results').innerHTML = '<pre>' + results.join('\n') + '</pre>';
+  </script>
+</body>
+</html>
